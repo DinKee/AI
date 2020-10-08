@@ -25,10 +25,11 @@ def sa(constraint):
     Tmin = 10 #minimum value of terperature
     x = np.random.uniform(low=constraint[0][0],high=constraint[0][1]) #initiate x
     y = np.random.uniform(low=constraint[1][0],high=constraint[1][1]) #initiate y
+    best_x, best_y = (float('inf'), ) * 2 #record optimized x y
     k = 50 #times of internal circulation 
-    z = 0 #initiate result
+    z , new_z , min_z= (float('inf'), ) * 3 #initiate result
     t = 0 #time
-    K = 0.0001 #coefficiency of T
+    K = 0.001 #coefficiency of T
     prev_z = z #record previous z
 
     z_best_counter = 0 # counter for detecting how stable the cost_best currently is
@@ -43,44 +44,47 @@ def sa(constraint):
             new_y = y + np.random.uniform(low=-0.055,high=0.055)*T
             if ( constraint[0][0] < new_x and new_x <= constraint[0][1]
                 and constraint[1][0] < new_y and new_y <= constraint[1][1] ):
-                new_y = func(new_x , new_y)
+                new_z = func(new_x , new_y)
 
                 # p = np.exp(-(new_y - z)/(K*T))
                 # r = np.random.rand()
                 #print("new_y-z=",new_y - z,"r:",r,"p:",p)
 
                 #print("round",i," new_y:",new_y)
-                if new_y < z:
+                if new_z < z:
                     x = new_x
                     y = new_y
       
                 else:
                     #metropolis principle
-                    p = np.exp(-(new_y - z)/(K*T))
+                    p = np.exp(-(new_z - z)/(K*T))
                     r = np.random.rand()
-                    #print("r:",r,"p:",p)
+                    #print("new_z-z=",new_z - z,"r:",r,"p:",p)
                     if r < p:
-                        #print("true!")
+                        # print("true!")
                         x = new_x
                         y = new_y
+                if new_z < min_z:
+                    min_z = new_z
+                    best_x = x
+                    best_y = y                
 
         t += 1
-        #print("Time:",t)
+        print("Time:",t)
         T=1000/(1+t)
         
-
-        if abs(prev_z - z) < 1e-12: #close enough to be stable
+        if abs(prev_z - min_z) < 1e-12: #close enough to be stable
           z_best_counter += 1
         else:    
           z_best_counter = 0    # Not stable yet, reset
 
-        prev_z = z
+        prev_z = min_z
 
-        # print("Temperature:", "%.2f°C" % round(T, 2),
-        #       " Z= ", "%.3f" % round(z, 3),
-        #       " Optimization Threshold:", "%d" % z_best_counter)
+        print("Temperature:", "%.2f°C" % round(T, 2),
+              " Z= ", "%.3f" % round(min_z, 3),
+              " Optimization Threshold:", "%d" % z_best_counter)
         
-    print ("sa_result: \n x:%.3f"%x,'\n',"y:%.3f"%y,'\n',"%.3f"%func(x,y))
+    print ("sa_result: \n x:%.3f"%best_x,'\n',"y:%.3f"%best_y,'\n',"%.3f"%func(best_x,best_y))
 
-brute_force(constraint)
+#brute_force(constraint)
 sa(constraint)
